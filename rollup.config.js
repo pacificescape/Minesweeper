@@ -1,3 +1,4 @@
+import json from 'rollup-plugin-json';
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -8,7 +9,7 @@ const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
 	let server;
-	
+
 	function toExit() {
 		if (server) server.kill(0);
 	}
@@ -45,7 +46,6 @@ export default {
 				css.write('public/build/bundle.css');
 			}
 		}),
-
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration -
@@ -55,8 +55,11 @@ export default {
 			browser: true,
 			dedupe: ['svelte']
 		}),
-		commonjs(),
 
+		commonjs(),
+		json({
+			compact: true
+		}),
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
 		!production && serve(),
