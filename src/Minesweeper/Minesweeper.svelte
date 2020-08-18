@@ -5,10 +5,19 @@
   const sleep = (millis) => new Promise(resolve => setTimeout(resolve, millis))
 
 	onMount(() => {
-    setInterval(() => requestAnimationFrame(loop))
-  })
+    const elemLeft = canvas.offsetLeft + canvas.clientLeft
+    const elemTop = canvas.offsetTop + canvas.clientTop
 
+    canvas.addEventListener('click', function(event) {
+    let x = event.pageX - elemLeft,
+        y = event.pageY - elemTop
+
+    console.log('clicked x:', x, ' y:', y)
+  })
+    requestAnimationFrame(loop)
+  })
   function loop() {
+      requestAnimationFrame(loop);
       const ms = new Date()
       const promises = []
       const ctx = canvas.getContext('2d')
