@@ -451,33 +451,36 @@ var app = (function () {
 
     function create_fragment$1(ctx) {
     	let canvas_1;
-    	let canvas_1_height_value;
 
     	const block = {
     		c: function create() {
     			canvas_1 = element("canvas");
     			attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
-    			attr_dev(canvas_1, "height", canvas_1_height_value = 500);
+    			attr_dev(canvas_1, "height", /*vh*/ ctx[2]);
     			attr_dev(canvas_1, "class", "svelte-1o3icdg");
-    			add_location(canvas_1, file$1, 180, 0, 5235);
+    			add_location(canvas_1, file$1, 193, 0, 5713);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, canvas_1, anchor);
-    			/*canvas_1_binding*/ ctx[2](canvas_1);
+    			/*canvas_1_binding*/ ctx[3](canvas_1);
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*vw*/ 2) {
     				attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
+    			}
+
+    			if (dirty & /*vh*/ 4) {
+    				attr_dev(canvas_1, "height", /*vh*/ ctx[2]);
     			}
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(canvas_1);
-    			/*canvas_1_binding*/ ctx[2](null);
+    			/*canvas_1_binding*/ ctx[3](null);
     		}
     	};
 
@@ -501,6 +504,7 @@ var app = (function () {
     function instance$1($$self, $$props, $$invalidate) {
     	let elemLeft = 0;
     	let elemTop = 0;
+    	const ms = new Date();
     	let canvas;
     	const sleep = millis => new Promise(resolve => setTimeout(resolve, millis));
     	let vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
@@ -509,7 +513,7 @@ var app = (function () {
 
     	window.addEventListener("resize", () => {
     		$$invalidate(1, vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)));
-    		vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    		$$invalidate(2, vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)));
     		vwd = even(vw * 0.1);
     		console.log("vw", vw);
     		console.log("vh", vh);
@@ -536,7 +540,7 @@ var app = (function () {
     			posX: even(vw * 0.11 + line * vwd),
     			posY: even(vw * 0.11 + col * vwd),
     			open: false,
-    			mine: Math.random() > 0.9 ? true : false,
+    			mine: Math.random() > 0.8 ? true : false,
     			value: ""
     		});
     	}
@@ -555,9 +559,8 @@ var app = (function () {
 
     	function loop() {
     		requestAnimationFrame(loop);
-    		const ms = new Date();
     		const ctx = canvas.getContext("2d");
-    		ctx.clearRect(0, 0, vw, 500);
+    		ctx.clearRect(0, 0, vw, vh);
 
     		for (let [row, line] of lands.entries()) {
     			line.forEach((land, col) => {
@@ -588,7 +591,10 @@ var app = (function () {
     				if (land.open && land.mine) ;
 
     				if (land.open) {
-    					ctx.fillStyle = "#fff";
+    					ctx.fillStyle = land.value === 0
+    					? "#fff"
+    					: land.value === "*" ? "#000" : "rgb(77, 255, 77)";
+
     					ctx.font = "30px serif";
     					ctx.fillText(land.value, even(land.posX) + even(vwd) / 2, even(land.posY) + even(vwd) / 2);
     				}
@@ -600,9 +606,9 @@ var app = (function () {
     		let date = new Date();
     		let text = date.getHours() + ":" + date.getMinutes() + ":" + date.getMilliseconds() + " " + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
     		let width = ctx.measureText(text).width;
-    		ctx.fillText(text, 250 - width / 2, 50);
+    		ctx.fillText(text, (vw - width) / 2, vh - 40);
     		ctx.font = "10px serif";
-    		ctx.fillText(new Date() - ms + "ms", 20, 480);
+    		ctx.fillText(Math.round((new Date() - ms) / 1000) + "s", 20, vh - 40);
     	}
 
     	function click(event) {
@@ -634,26 +640,40 @@ var app = (function () {
 
     				// debugger
     				if (!xx && !yy) {
-    					lands[row][col].open = true;
-    					lands[row][col].color = "#8a8a8a";
-    					if (lands[row][col].mine) return lands[row][col].value = "*";
-    					let value = 0;
-
-    					try {
-    						for (let r = -1; r < 2; r++) {
-    							for (let c = -1; c < 2; c++) {
-    								if (lands[row + r] && lands[row + r][col + c] && lands[row + r][col + c].mine) value += 1;
-    							}
-    						}
-    					} catch(err) {
-    						console.log(err);
-    					}
-
-    					lands[row][col].value = value;
-    					console.log([row, col]);
-    					console.log([y, x]);
+    					open(row, col);
     				}
     			});
+    		}
+    	}
+
+    	function open(row, col) {
+    		if (lands[row][col].open) return;
+    		lands[row][col].open = true;
+    		lands[row][col].color = "#8a8a8a";
+    		if (lands[row][col].mine) return lands[row][col].value = "*";
+    		let value = 0;
+
+    		try {
+    			for (let r = -1; r < 2; r++) {
+    				for (let c = -1; c < 2; c++) {
+    					if (lands[row + r] && lands[row + r][col + c] && lands[row + r][col + c].mine) value += 1;
+    				}
+    			}
+    		} catch(err) {
+    			console.log(err);
+    		}
+
+    		lands[row][col].value = value;
+
+    		if (value === 0) {
+    			for (let r = -1; r < 2; r++) {
+    				for (let c = -1; c < 2; c++) {
+    					if (c === 0 && r === 0) continue;
+    					if (row + r < 0 || row + r > 7) continue;
+    					if (col + c < 0 || col + c > 7) continue;
+    					open(row + r, col + c);
+    				}
+    			}
     		}
     	}
 
@@ -677,6 +697,7 @@ var app = (function () {
     		onMount,
     		elemLeft,
     		elemTop,
+    		ms,
     		canvas,
     		sleep,
     		vw,
@@ -685,6 +706,7 @@ var app = (function () {
     		lands,
     		loop,
     		click,
+    		open,
     		even
     	});
 
@@ -693,7 +715,7 @@ var app = (function () {
     		if ("elemTop" in $$props) elemTop = $$props.elemTop;
     		if ("canvas" in $$props) $$invalidate(0, canvas = $$props.canvas);
     		if ("vw" in $$props) $$invalidate(1, vw = $$props.vw);
-    		if ("vh" in $$props) vh = $$props.vh;
+    		if ("vh" in $$props) $$invalidate(2, vh = $$props.vh);
     		if ("vwd" in $$props) vwd = $$props.vwd;
     	};
 
@@ -701,7 +723,7 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [canvas, vw, canvas_1_binding];
+    	return [canvas, vw, vh, canvas_1_binding];
     }
 
     class Minesweeper extends SvelteComponentDev {

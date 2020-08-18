@@ -3,7 +3,7 @@
 
   let elemLeft = 0
   let elemTop = 0
-
+  const ms = new Date()
 	let canvas
   const sleep = (millis) => new Promise(resolve => setTimeout(resolve, millis))
 
@@ -46,7 +46,7 @@
         posX: even(vw * 0.11 + line * vwd),
         posY: even(vw * 0.11 + col  * vwd),
         open: false,
-        mine: Math.random() > 0.9 ? true : false,
+        mine: Math.random() > 0.8 ? true : false,
         value: ''
       }
     )
@@ -65,9 +65,8 @@
 
   function loop() {
       requestAnimationFrame(loop);
-      const ms = new Date()
       const ctx = canvas.getContext('2d')
-      ctx.clearRect(0,0,vw,500)
+      ctx.clearRect(0,0,vw,vh)
 
       for (let [row, line] of lands.entries()) {
         line.forEach((land, col) => {
@@ -102,7 +101,8 @@
           }
 
           if(land.open) {
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = land.value === 0 ? '#fff' : land.value === '*' ? '#000' : 'rgb(77, 255, 77)'
+
             ctx.font = "30px serif";
             ctx.fillText(land.value, even(land.posX) + even(vwd) / 2, even(land.posY) + even(vwd) / 2)
           }
@@ -114,10 +114,10 @@
       let date = new Date()
       let text = date.getHours() + ':' + date.getMinutes()+ ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
       let width = ctx.measureText(text).width
-      ctx.fillText(text, 250 - width / 2, 50);
+      ctx.fillText(text, (vw - width)/ 2, vh - 40);
 
       ctx.font = "10px serif";
-      ctx.fillText(new Date() - ms + 'ms', 20, 480)
+      ctx.fillText(Math.round((new Date() - ms) / 1000) + 's', 20, vh - 40)
   }
 
   function click (event) {
@@ -145,7 +145,15 @@
 
       // debugger
       if (!xx && !yy) {
-          lands[row][col].open = true
+        open(row, col)
+      }
+    })
+  }
+  }
+
+  function open (row, col) {
+    if (lands[row][col].open) return
+    lands[row][col].open = true
           lands[row][col].color = '#8a8a8a'
           if (lands[row][col].mine) return lands[row][col].value = '*'
 
@@ -162,11 +170,16 @@
 
           lands[row][col].value = value
 
-          console.log([row, col])
-          console.log([y, x])
-      }
-    })
-  }
+          if (value === 0) {
+            for (let r = -1; r < 2; r++) {
+              for (let c = -1; c < 2; c++) {
+                if (c === 0 && r === 0) continue
+                if (row + r < 0 || row + r > 7) continue
+                if (col + c < 0 || col + c > 7) continue
+                open(row + r, col + c)
+              }
+            }
+          }
   }
 
   function even (number) {
@@ -181,7 +194,7 @@
 <canvas
 	bind:this={canvas}
 	width={vw}
-	height={500}
+	height={vh}
 ></canvas>
 
 <style>
