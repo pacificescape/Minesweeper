@@ -110,13 +110,13 @@
       }
 
       ctx.fillStyle = "#ccc";
-      ctx.font = "50px serif";
+      ctx.font = "10px serif";
       let date = new Date()
       let text = date.getHours() + ':' + date.getMinutes()+ ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
       let width = ctx.measureText(text).width
       ctx.fillText(text, 250 - width / 2, 50);
 
-      ctx.font = "20px serif";
+      ctx.font = "10px serif";
       ctx.fillText(new Date() - ms + 'ms', 20, 480)
   }
 
