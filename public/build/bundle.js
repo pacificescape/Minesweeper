@@ -359,12 +359,12 @@ var app = (function () {
     			h31 = element("h3");
     			h31.textContent = `date2 is ${/*date2*/ ctx[1]}`;
     			attr_dev(h30, "class", "svelte-ehh4l7");
-    			add_location(h30, file, 8, 4, 122);
+    			add_location(h30, file, 9, 4, 138);
     			attr_dev(h31, "class", "svelte-ehh4l7");
-    			add_location(h31, file, 9, 4, 150);
-    			add_location(div, file, 7, 2, 112);
+    			add_location(h31, file, 10, 4, 166);
+    			add_location(div, file, 8, 2, 128);
     			attr_dev(main, "class", "svelte-ehh4l7");
-    			add_location(main, file, 6, 0, 103);
+    			add_location(main, file, 7, 0, 119);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -421,6 +421,12 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*date*/ 1) {
+    			 $$invalidate(0, date);
+    		}
+    	};
+
     	return [date, date2];
     }
 
@@ -451,8 +457,8 @@ var app = (function () {
     			canvas_1 = element("canvas");
     			attr_dev(canvas_1, "width", canvas_1_width_value = 500);
     			attr_dev(canvas_1, "height", canvas_1_height_value = 500);
-    			attr_dev(canvas_1, "class", "svelte-1ht35y4");
-    			add_location(canvas_1, file$1, 40, 0, 989);
+    			attr_dev(canvas_1, "class", "svelte-10lqciz");
+    			add_location(canvas_1, file$1, 59, 0, 1986);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -483,36 +489,55 @@ var app = (function () {
 
     function instance$1($$self, $$props, $$invalidate) {
     	let canvas;
+    	const sleep = millis => new Promise(resolve => setTimeout(resolve, millis));
 
     	onMount(() => {
-    		(function loop() {
-    			const ctx = canvas.getContext("2d");
+    		setInterval(() => requestAnimationFrame(loop));
+    	});
 
-    			function draw() {
+    	function loop() {
+    		const ms = new Date();
+    		const ctx = canvas.getContext("2d");
+    		ctx.clearRect(0, 0, 500, 500);
 
-    				for (let line = 0; line < 8; line++) {
-    					for (let col = 0; col < 8; col++) {
-    						if (canvas.getContext) {
-    							const posX = 15 + line * 60;
-    							const posY = 15 + col * 60;
-    							ctx.moveTo(posX, posY);
-    							ctx.lineTo(posX + 55, posY);
-    							ctx.lineTo(posX + 55, posY + 50);
-    							ctx.lineTo(posX, posY + 50);
-    							ctx.lineTo(posX, posY);
-    							ctx.stroke();
-    							ctx.fillStyle = "rgb(222,222,222)";
-    							ctx.fillRect(posX, posY, 55, 50);
-    						} // ctx.fillStyle = "rgba(44, 222, 111, 0.5)";
-    						// ctx.strokeRect (15 + line * 60, 15 + col * 60, 55, 50);
-    					}
+    		for (let line = 0; line < 8; line++) {
+    			for (let col = 0; col < 8; col++) {
+    				if (canvas.getContext) {
+    					const posX = 15 + line * 60;
+    					const posY = 15 + col * 60;
+    					ctx.beginPath();
+    					ctx.lineCap = "round";
+    					ctx.lineWidth = 2;
+    					ctx.moveTo(posX, posY);
+    					ctx.strokeStyle = `rgb(${Math.floor(255 - 32.5 * line)},${Math.floor(255 - 34.5 * col)},102)`;
+    					ctx.lineTo(posX + 55, posY);
+    					ctx.lineTo(posX + 55, posY + 50);
+    					ctx.stroke();
+    					ctx.closePath();
+    					ctx.beginPath();
+    					ctx.lineCap = "round";
+    					ctx.lineWidth = 2;
+    					ctx.moveTo(posX + 55, posY + 50);
+    					ctx.strokeStyle = `rgb(${Math.floor(255 - 20 * line)},${Math.floor(255 - 20 * col)},122)`;
+    					ctx.lineTo(posX, posY + 50);
+    					ctx.lineTo(posX, posY);
+    					ctx.stroke();
+    					ctx.closePath();
+    					ctx.fillStyle = "rgba(77,155,77,1)";
+    					ctx.fillRect(posX, posY, 55, 50);
     				}
     			}
+    		}
 
-    			draw();
-    			ctx.putImageData(imageData, 0, 0);
-    		})();
-    	});
+    		ctx.fillStyle = "#ccc";
+    		ctx.font = "50px serif";
+    		let date = new Date();
+    		let text = date.getHours() + ":" + date.getMinutes() + ":" + date.getMilliseconds() + " " + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+    		let width = ctx.measureText(text).width;
+    		ctx.fillText(text, 250 - width / 2, 50);
+    		ctx.font = "20px serif";
+    		ctx.fillText(new Date() - ms + "ms", 20, 480);
+    	}
 
     	const writable_props = [];
 
@@ -530,7 +555,7 @@ var app = (function () {
     		});
     	}
 
-    	$$self.$capture_state = () => ({ onMount, canvas });
+    	$$self.$capture_state = () => ({ onMount, canvas, sleep, loop });
 
     	$$self.$inject_state = $$props => {
     		if ("canvas" in $$props) $$invalidate(0, canvas = $$props.canvas);
@@ -575,7 +600,7 @@ var app = (function () {
     			create_component(header.$$.fragment);
     			t = space();
     			create_component(minesweeper.$$.fragment);
-    			attr_dev(main, "class", "svelte-6f30m7");
+    			attr_dev(main, "class", "svelte-1u52bhl");
     			add_location(main, file$2, 5, 0, 118);
     		},
     		l: function claim(nodes) {
@@ -645,12 +670,10 @@ var app = (function () {
     	}
     }
 
-    var version="1.0.0";
-
     const app = new App({
     	target: document.body,
     	props: {
-    		version
+
     	}
     });
 

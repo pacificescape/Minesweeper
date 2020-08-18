@@ -12,7 +12,6 @@
 	main {
 		background-color: #2d2d2d;
 		text-align: center;
-		max-width: 240px;
 		margin: 0 auto;
 	}
 
