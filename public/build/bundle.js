@@ -365,12 +365,12 @@ var app = (function () {
     			h31 = element("h3");
     			h31.textContent = `date2 is ${/*date2*/ ctx[1]}`;
     			attr_dev(h30, "class", "svelte-ehh4l7");
-    			add_location(h30, file, 9, 4, 138);
+    			add_location(h30, file, 9, 4, 141);
     			attr_dev(h31, "class", "svelte-ehh4l7");
-    			add_location(h31, file, 10, 4, 166);
-    			add_location(div, file, 8, 2, 128);
+    			add_location(h31, file, 10, 4, 169);
+    			add_location(div, file, 8, 2, 131);
     			attr_dev(main, "class", "svelte-ehh4l7");
-    			add_location(main, file, 7, 0, 119);
+    			add_location(main, file, 7, 0, 122);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -427,12 +427,6 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*date*/ 1) {
-    			 $$invalidate(0, date);
-    		}
-    	};
-
     	return [date, date2];
     }
 
@@ -457,30 +451,33 @@ var app = (function () {
 
     function create_fragment$1(ctx) {
     	let canvas_1;
-    	let canvas_1_width_value;
     	let canvas_1_height_value;
 
     	const block = {
     		c: function create() {
     			canvas_1 = element("canvas");
-    			attr_dev(canvas_1, "width", canvas_1_width_value = 500);
+    			attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
     			attr_dev(canvas_1, "height", canvas_1_height_value = 500);
     			attr_dev(canvas_1, "class", "svelte-10lqciz");
-    			add_location(canvas_1, file$1, 68, 0, 2291);
+    			add_location(canvas_1, file$1, 147, 0, 4351);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, canvas_1, anchor);
-    			/*canvas_1_binding*/ ctx[1](canvas_1);
+    			/*canvas_1_binding*/ ctx[2](canvas_1);
     		},
-    		p: noop,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*vw*/ 2) {
+    				attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
+    			}
+    		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(canvas_1);
-    			/*canvas_1_binding*/ ctx[1](null);
+    			/*canvas_1_binding*/ ctx[2](null);
     		}
     	};
 
@@ -496,16 +493,51 @@ var app = (function () {
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let elemLeft = 0;
+    	let elemTop = 0;
     	let canvas;
     	const sleep = millis => new Promise(resolve => setTimeout(resolve, millis));
+    	let vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    	let vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+    	window.addEventListener("resize", () => {
+    		$$invalidate(1, vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
+    		vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    		console.log("vw", vw);
+    		console.log("vh", vh);
+    		elemLeft = canvas.offsetLeft + canvas.clientLeft;
+    		elemTop = canvas.offsetTop + canvas.clientTop;
+    	}); // for (let [row, line] of lands.entries()) {
+    	//     line.forEach((land, col) => {
+    	//       lands[line][row].posX = vw * 0.11 + line * vw * 0.1
+    	//       lands[line][row].posY = vw * 0.11 + col * vw * 0.1
+
+    	//     })}
+    	console.log("vw", vw);
+
+    	console.log("vh", vh);
+    	const lands = [];
+
+    	for (let l = 0; l < 64; l++) {
+    		const line = Math.floor(l / 8);
+    		const col = l % 8;
+    		lands[line] = lands[line] || [];
+
+    		lands[line].push({
+    			color: "rgba(77,155,77,1)",
+    			posX: vw * 0.11 + line * vw * 0.1,
+    			posY: vw * 0.11 + col * vw * 0.1,
+    			state: false
+    		});
+    	}
 
     	onMount(() => {
-    		const elemLeft = canvas.offsetLeft + canvas.clientLeft;
-    		const elemTop = canvas.offsetTop + canvas.clientTop;
+    		elemLeft = canvas.offsetLeft + canvas.clientLeft;
+    		elemTop = canvas.offsetTop + canvas.clientTop;
 
-    		canvas.addEventListener("click", function (event) {
-    			let x = event.pageX - elemLeft, y = event.pageY - elemTop;
-    			console.log("clicked x:", x, " y:", y);
+    		canvas.addEventListener("click", evt => {
+    			click(evt);
+    			cancelAnimationFrame(loop);
     		});
 
     		requestAnimationFrame(loop);
@@ -515,35 +547,37 @@ var app = (function () {
     		requestAnimationFrame(loop);
     		const ms = new Date();
     		const ctx = canvas.getContext("2d");
-    		ctx.clearRect(0, 0, 500, 500);
+    		ctx.clearRect(0, 0, vw, vh);
 
-    		for (let line = 0; line < 8; line++) {
-    			for (let col = 0; col < 8; col++) {
+    		for (let [row, line] of lands.entries()) {
+    			line.forEach((land, col) => {
+    				if (land.state) return;
+
     				if (canvas.getContext) {
-    					const posX = 15 + line * 60;
-    					const posY = 15 + col * 60;
+    					land.posY = vw * 0.05 + row * vw * 0.1 + Math.ceil(row / 8) * 6 * row; // отступы
+    					land.posX = vw * 0.05 + col * vw * 0.1 + Math.ceil(col / 8) * 6 * col;
     					ctx.beginPath();
     					ctx.lineCap = "round";
     					ctx.lineWidth = 2;
-    					ctx.moveTo(posX, posY);
-    					ctx.strokeStyle = `rgb(${Math.floor(255 - 32.5 * line)},${Math.floor(255 - 34.5 * col)},102)`;
-    					ctx.lineTo(posX + 55, posY);
-    					ctx.lineTo(posX + 55, posY + 50);
+    					ctx.moveTo(land.posX, land.posY);
+    					ctx.strokeStyle = `rgb(${Math.floor(255 - 32.5 * row)},${Math.floor(255 - 34.5 * col)},102)`;
+    					ctx.lineTo(land.posX + vw * 0.1, land.posY);
+    					ctx.lineTo(land.posX + vw * 0.1, land.posY + vw * 0.1);
     					ctx.stroke();
     					ctx.closePath();
     					ctx.beginPath();
     					ctx.lineCap = "round";
     					ctx.lineWidth = 2;
-    					ctx.moveTo(posX + 55, posY + 50);
+    					ctx.moveTo(land.posX + vw * 0.1, land.posY + vw * 0.1);
     					ctx.strokeStyle = `rgb(${Math.floor(255 - 20 * line)},${Math.floor(255 - 20 * col)},122)`;
-    					ctx.lineTo(posX, posY + 50);
-    					ctx.lineTo(posX, posY);
+    					ctx.lineTo(land.posX, land.posY + vw * 0.1);
+    					ctx.lineTo(land.posX, land.posY);
     					ctx.stroke();
     					ctx.closePath();
-    					ctx.fillStyle = "rgba(77,155,77,1)";
-    					ctx.fillRect(posX, posY, 55, 50);
+    					ctx.fillStyle = land.color;
+    					ctx.fillRect(land.posX, land.posY, vw * 0.1, vw * 0.1);
     				}
-    			}
+    			});
     		}
 
     		ctx.fillStyle = "#ccc";
@@ -554,6 +588,43 @@ var app = (function () {
     		ctx.fillText(text, 250 - width / 2, 50);
     		ctx.font = "20px serif";
     		ctx.fillText(new Date() - ms + "ms", 20, 480);
+    	}
+
+    	function click(event) {
+    		let x = event.pageX, y = event.pageY - elemTop;
+
+    		for (let [row, line] of lands.entries()) {
+    			const target = line.map((land, col) => {
+    				const posY = lands[col][row].posY;
+    				const posX = lands[col][row].posX;
+    				let xx = true;
+    				let yy = true;
+
+    				if (x >= posX && x <= posX + vw * 0.1) {
+    					console.log(posX);
+    					console.log(x);
+    					xx = false;
+    				}
+
+    				
+
+    				// debugger
+    				if (y >= posY && y <= posY + vw * 0.1) {
+    					console.log(posY);
+    					console.log(y);
+    					yy = false;
+    				}
+
+    				
+    				debugger;
+
+    				if (!xx && !yy) {
+    					lands[col][row].state = true;
+    					console.log([row, col]);
+    					console.log([y, x]);
+    				}
+    			});
+    		}
     	}
 
     	const writable_props = [];
@@ -572,17 +643,32 @@ var app = (function () {
     		});
     	}
 
-    	$$self.$capture_state = () => ({ onMount, canvas, sleep, loop });
+    	$$self.$capture_state = () => ({
+    		onMount,
+    		elemLeft,
+    		elemTop,
+    		canvas,
+    		sleep,
+    		vw,
+    		vh,
+    		lands,
+    		loop,
+    		click
+    	});
 
     	$$self.$inject_state = $$props => {
+    		if ("elemLeft" in $$props) elemLeft = $$props.elemLeft;
+    		if ("elemTop" in $$props) elemTop = $$props.elemTop;
     		if ("canvas" in $$props) $$invalidate(0, canvas = $$props.canvas);
+    		if ("vw" in $$props) $$invalidate(1, vw = $$props.vw);
+    		if ("vh" in $$props) vh = $$props.vh;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [canvas, canvas_1_binding];
+    	return [canvas, vw, canvas_1_binding];
     }
 
     class Minesweeper extends SvelteComponentDev {

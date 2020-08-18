@@ -2,7 +2,7 @@
   let date = Date()
   const date2 = Date()
   setInterval(() => date = Date(), 500)
-  $:date = date
+//   $:date = date
 </script>
 
 <main>
