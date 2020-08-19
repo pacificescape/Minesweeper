@@ -450,37 +450,55 @@ var app = (function () {
     const file$1 = "src/Minesweeper/Minesweeper.svelte";
 
     function create_fragment$1(ctx) {
+    	let div1;
+    	let div0;
+    	let t1;
     	let canvas_1;
 
     	const block = {
     		c: function create() {
+    			div1 = element("div");
+    			div0 = element("div");
+    			div0.textContent = "Score";
+    			t1 = space();
     			canvas_1 = element("canvas");
-    			attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
-    			attr_dev(canvas_1, "height", /*vh*/ ctx[2]);
-    			attr_dev(canvas_1, "class", "svelte-1o3icdg");
-    			add_location(canvas_1, file$1, 193, 0, 5713);
+    			attr_dev(div0, "class", "score");
+    			add_location(div0, file$1, 196, 2, 5311);
+    			attr_dev(canvas_1, "width", /*vw*/ ctx[3]);
+    			attr_dev(canvas_1, "height", /*vw*/ ctx[3]);
+    			attr_dev(canvas_1, "class", "svelte-1ur2p5e");
+    			add_location(canvas_1, file$1, 199, 2, 5370);
+    			attr_dev(div1, "class", "main svelte-1ur2p5e");
+    			add_location(div1, file$1, 195, 0, 5273);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, canvas_1, anchor);
-    			/*canvas_1_binding*/ ctx[3](canvas_1);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, div0);
+    			/*div0_binding*/ ctx[4](div0);
+    			append_dev(div1, t1);
+    			append_dev(div1, canvas_1);
+    			/*canvas_1_binding*/ ctx[5](canvas_1);
+    			/*div1_binding*/ ctx[6](div1);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*vw*/ 2) {
-    				attr_dev(canvas_1, "width", /*vw*/ ctx[1]);
+    			if (dirty & /*vw*/ 8) {
+    				attr_dev(canvas_1, "width", /*vw*/ ctx[3]);
     			}
 
-    			if (dirty & /*vh*/ 4) {
-    				attr_dev(canvas_1, "height", /*vh*/ ctx[2]);
+    			if (dirty & /*vw*/ 8) {
+    				attr_dev(canvas_1, "height", /*vw*/ ctx[3]);
     			}
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(canvas_1);
-    			/*canvas_1_binding*/ ctx[3](null);
+    			if (detaching) detach_dev(div1);
+    			/*div0_binding*/ ctx[4](null);
+    			/*canvas_1_binding*/ ctx[5](null);
+    			/*div1_binding*/ ctx[6](null);
     		}
     	};
 
@@ -495,50 +513,60 @@ var app = (function () {
     	return block;
     }
 
+    const COMPLEXITY = 8;
+
     function even(number) {
-    	number = Math.round(number);
-    	if (number % 2 !== 0) return number + 1;
     	return number;
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let main;
+    	let score;
     	let elemLeft = 0;
     	let elemTop = 0;
     	const ms = new Date();
     	let canvas;
     	const sleep = millis => new Promise(resolve => setTimeout(resolve, millis));
+
+    	const colors = {
+    		1: "#1b76d1",
+    		2: "#3a8e3c",
+    		3: "#d32f2f",
+    		4: "#7c21a1",
+    		5: "#f4c20d",
+    		6: "#ed44b5",
+    		7: "#48e6f1",
+    		8: "#f4840d"
+    	};
+
     	let vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
     	let vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    	vw = vw > 600 ? 600 : vw;
     	let vwd = even(vw * 0.1);
 
     	window.addEventListener("resize", () => {
-    		$$invalidate(1, vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)));
-    		$$invalidate(2, vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)));
+    		$$invalidate(3, vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0)));
+    		vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    		$$invalidate(3, vw = vw > 600 ? 600 : vw);
     		vwd = even(vw * 0.1);
     		console.log("vw", vw);
     		console.log("vh", vh);
     		elemLeft = even(canvas.offsetLeft + canvas.clientLeft);
     		elemTop = even(canvas.offsetTop + canvas.clientTop);
-    	}); // for (let [row, line] of lands.entries()) {
-    	//     line.forEach((land, col) => {
-    	//       lands[line][row].posX = vw * 0.11 + line * vw * 0.1
-    	//       lands[line][row].posY = vw * 0.11 + col * vw * 0.1
+    	});
 
-    	//     })}
     	console.log("vw", vw);
-
     	console.log("vh", vh);
     	const lands = [];
 
     	for (let l = 0; l < 64; l++) {
     		const line = Math.floor(l / 8);
-    		const col = l % 8;
     		lands[line] = lands[line] || [];
 
     		lands[line].push({
-    			color: "rgba(77,155,77,1)",
-    			posX: even(vw * 0.11 + line * vwd),
-    			posY: even(vw * 0.11 + col * vwd),
+    			color: "",
+    			// posX: even(line * vw / COMPLEXITY),
+    			// posY: even(col  * vw / COMPLEXITY),
     			open: false,
     			mine: Math.random() > 0.8 ? true : false,
     			value: ""
@@ -546,6 +574,9 @@ var app = (function () {
     	}
 
     	onMount(() => {
+    		$$invalidate(3, vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0)));
+    		vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    		$$invalidate(3, vw = vw > 600 ? 600 : vw);
     		elemLeft = canvas.offsetLeft + canvas.clientLeft;
     		elemTop = canvas.offsetTop + canvas.clientTop;
 
@@ -564,29 +595,13 @@ var app = (function () {
 
     		for (let [row, line] of lands.entries()) {
     			line.forEach((land, col) => {
-    				land.posY = even(vw * 0.05 + row * vwd + Math.ceil(row / 8) * 6 * row); // отступы
-    				land.posX = even(vw * 0.05 + col * vwd + Math.ceil(col / 8) * 6 * col);
     				if (!canvas.getContext) return;
-    				ctx.beginPath();
-    				ctx.lineCap = "square";
-    				ctx.lineWidth = 8;
-    				ctx.moveTo(land.posX, land.posY);
-    				ctx.strokeStyle = `rgb(${Math.floor(255 - 32.5 * row)},${Math.floor(255 - 34.5 * col)},102)`;
-    				ctx.lineTo(even(land.posX + vwd), even(land.posY));
-    				ctx.lineTo(even(land.posX + vwd), even(land.posY + vwd));
-    				ctx.stroke();
-    				ctx.closePath();
-    				ctx.beginPath();
-    				ctx.lineCap = "square";
-    				ctx.lineWidth = 8;
-    				ctx.moveTo(land.posX + vwd, land.posY + vwd);
-    				ctx.strokeStyle = `rgb(${Math.floor(255 - 20 * line)},${Math.floor(255 - 20 * col)},122)`;
-    				ctx.lineTo(land.posX, land.posY + vwd);
-    				ctx.lineTo(land.posX, land.posY);
-    				ctx.stroke();
-    				ctx.closePath();
-    				ctx.fillStyle = land.color;
-    				ctx.fillRect(even(land.posX), even(land.posY), even(vwd), even(vwd));
+
+    				(land.posX = even(row * vw / COMPLEXITY), land.posY = even(col * vw / COMPLEXITY), ctx.fillStyle = land.color
+    				? land.color
+    				: (row + col) % 2 === 1 ? "#a7d948" : "#8ecc39");
+
+    				ctx.fillRect(even(land.posX), even(land.posY), vw / COMPLEXITY + 1, vw / COMPLEXITY + 1);
 
     				if (land.open && land.mine) ;
 
@@ -629,7 +644,6 @@ var app = (function () {
 
     				
 
-    				// debugger
     				if (y >= posY && y <= posY + vw * 0.1) {
     					console.log(posY);
     					console.log(y);
@@ -638,7 +652,6 @@ var app = (function () {
 
     				
 
-    				// debugger
     				if (!xx && !yy) {
     					open(row, col);
     				}
@@ -686,20 +699,38 @@ var app = (function () {
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("Minesweeper", $$slots, []);
 
+    	function div0_binding($$value) {
+    		binding_callbacks[$$value ? "unshift" : "push"](() => {
+    			score = $$value;
+    			$$invalidate(1, score);
+    		});
+    	}
+
     	function canvas_1_binding($$value) {
     		binding_callbacks[$$value ? "unshift" : "push"](() => {
     			canvas = $$value;
-    			$$invalidate(0, canvas);
+    			$$invalidate(2, canvas);
+    		});
+    	}
+
+    	function div1_binding($$value) {
+    		binding_callbacks[$$value ? "unshift" : "push"](() => {
+    			main = $$value;
+    			$$invalidate(0, main);
     		});
     	}
 
     	$$self.$capture_state = () => ({
     		onMount,
+    		COMPLEXITY,
+    		main,
+    		score,
     		elemLeft,
     		elemTop,
     		ms,
     		canvas,
     		sleep,
+    		colors,
     		vw,
     		vh,
     		vwd,
@@ -711,11 +742,13 @@ var app = (function () {
     	});
 
     	$$self.$inject_state = $$props => {
+    		if ("main" in $$props) $$invalidate(0, main = $$props.main);
+    		if ("score" in $$props) $$invalidate(1, score = $$props.score);
     		if ("elemLeft" in $$props) elemLeft = $$props.elemLeft;
     		if ("elemTop" in $$props) elemTop = $$props.elemTop;
-    		if ("canvas" in $$props) $$invalidate(0, canvas = $$props.canvas);
-    		if ("vw" in $$props) $$invalidate(1, vw = $$props.vw);
-    		if ("vh" in $$props) $$invalidate(2, vh = $$props.vh);
+    		if ("canvas" in $$props) $$invalidate(2, canvas = $$props.canvas);
+    		if ("vw" in $$props) $$invalidate(3, vw = $$props.vw);
+    		if ("vh" in $$props) vh = $$props.vh;
     		if ("vwd" in $$props) vwd = $$props.vwd;
     	};
 
@@ -723,7 +756,7 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [canvas, vw, vh, canvas_1_binding];
+    	return [main, score, canvas, vw, div0_binding, canvas_1_binding, div1_binding];
     }
 
     class Minesweeper extends SvelteComponentDev {
@@ -745,18 +778,13 @@ var app = (function () {
 
     function create_fragment$2(ctx) {
     	let main;
-    	let header;
-    	let t;
     	let minesweeper;
     	let current;
-    	header = new Header({ $$inline: true });
     	minesweeper = new Minesweeper({ $$inline: true });
 
     	const block = {
     		c: function create() {
     			main = element("main");
-    			create_component(header.$$.fragment);
-    			t = space();
     			create_component(minesweeper.$$.fragment);
     			attr_dev(main, "class", "svelte-1u52bhl");
     			add_location(main, file$2, 5, 0, 118);
@@ -766,26 +794,21 @@ var app = (function () {
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, main, anchor);
-    			mount_component(header, main, null);
-    			append_dev(main, t);
     			mount_component(minesweeper, main, null);
     			current = true;
     		},
     		p: noop,
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(header.$$.fragment, local);
     			transition_in(minesweeper.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(header.$$.fragment, local);
     			transition_out(minesweeper.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(main);
-    			destroy_component(header);
     			destroy_component(minesweeper);
     		}
     	};

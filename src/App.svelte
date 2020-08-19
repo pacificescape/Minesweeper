@@ -4,7 +4,7 @@
 </script>
 
 <main>
-	<Header></Header>
+	<!-- <Header></Header> -->
 	<Minesweeper></Minesweeper>
 </main>
 

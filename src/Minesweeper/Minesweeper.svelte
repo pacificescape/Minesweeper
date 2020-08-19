@@ -1,32 +1,51 @@
 <script>
+  //  Заметки:
+  //  нарисовать svg иконки флажка бомбы и тд
+  //
+  //  баг - не весь квадратик кликается
+  //
+  //
+
   import { onMount } from 'svelte';
 
+  const COMPLEXITY = 8
+  let main
+  let score
   let elemLeft = 0
   let elemTop = 0
   const ms = new Date()
 	let canvas
   const sleep = (millis) => new Promise(resolve => setTimeout(resolve, millis))
 
+  const colors = {
+    1: '#1b76d1',
+    2: '#3a8e3c',
+    3: '#d32f2f',
+    4: '#7c21a1',
+    5: '#f4c20d',
+    6: '#ed44b5',
+    7: '#48e6f1',
+    8: '#f4840d'
+  }
+
   let vw = even(Math.max(document.documentElement.clientWidth  || 0, window.innerWidth  || 0))
   let vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0))
+  vw = vw > 600 ? 600 : vw
 
   let vwd = even(vw * 0.1)
 
   window.addEventListener('resize', () => {
-    vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0))
+    vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0))
     vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0))
+    vw = vw > 600 ? 600 : vw
+
     vwd = even(vw * 0.1)
+
     console.log('vw', vw)
     console.log('vh', vh)
 
     elemLeft = even(canvas.offsetLeft + canvas.clientLeft)
     elemTop  = even(canvas.offsetTop  + canvas.clientTop)
-
-    // for (let [row, line] of lands.entries()) {
-    //     line.forEach((land, col) => {
-    //       lands[line][row].posX = vw * 0.11 + line * vw * 0.1
-    //       lands[line][row].posY = vw * 0.11 + col * vw * 0.1
-    //     })}
   })
 
   console.log('vw', vw)
@@ -42,9 +61,9 @@
 
     lands[line].push(
       {
-        color: "rgba(77,155,77,1)",
-        posX: even(vw * 0.11 + line * vwd),
-        posY: even(vw * 0.11 + col  * vwd),
+        color: "",
+        // posX: even(line * vw / COMPLEXITY),
+        // posY: even(col  * vw / COMPLEXITY),
         open: false,
         mine: Math.random() > 0.8 ? true : false,
         value: ''
@@ -53,6 +72,10 @@
   }
 
 	onMount(() => {
+    vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0))
+    vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0))
+    vw = vw > 600 ? 600 : vw
+
     elemLeft = canvas.offsetLeft + canvas.clientLeft
     elemTop  = canvas.offsetTop  + canvas.clientTop
 
@@ -70,33 +93,12 @@
 
       for (let [row, line] of lands.entries()) {
         line.forEach((land, col) => {
-          land.posY = even(vw * 0.05 + row  * vwd + Math.ceil(row/8) * 6 * row) // отступы
-          land.posX = even(vw * 0.05 + col  * vwd + Math.ceil(col/8) * 6 * col)
           if (!canvas.getContext) return
-          ctx.beginPath()
-          ctx.lineCap = "square"
-          ctx.lineWidth = 8;
+          land.posX = even(row * vw / COMPLEXITY),
+          land.posY = even(col  * vw / COMPLEXITY),
 
-          ctx.moveTo(land.posX, land.posY);
-          ctx.strokeStyle = `rgb(${Math.floor(255-32.5*row)},${Math.floor(255-34.5*col)},102)`;
-          ctx.lineTo(even(land.posX + vwd), even(land.posY));
-          ctx.lineTo(even(land.posX + vwd), even(land.posY + vwd));
-          ctx.stroke()
-          ctx.closePath()
-
-          ctx.beginPath()
-          ctx.lineCap = "square"
-          ctx.lineWidth = 8;
-          ctx.moveTo(land.posX + vwd, land.posY + vwd);
-          ctx.strokeStyle = `rgb(${Math.floor(255-20*line)},${Math.floor(255-20*col)},122)`;
-
-          ctx.lineTo(land.posX, land.posY + vwd);
-          ctx.lineTo(land.posX, land.posY);
-          ctx.stroke()
-          ctx.closePath()
-
-          ctx.fillStyle = land.color;
-          ctx.fillRect(even(land.posX), even(land.posY), even(vwd) , even(vwd));
+          ctx.fillStyle = land.color ? land.color : (row + col) % 2 === 1 ? '#a7d948' : '#8ecc39'
+          ctx.fillRect(even(land.posX), even(land.posY), vw / COMPLEXITY  + 1, vw / COMPLEXITY + 1);
           if(land.open && land.mine) {
           }
 
@@ -125,30 +127,29 @@
         y = event.pageY - elemTop
 
     for (let [col, line] of lands.entries()) {
-    const target = line.map((land, row) => {
-      const posY = lands[row][col].posY
-      const posX = lands[row][col].posX
-      let xx = true
-      let yy= true
+      const target = line.map((land, row) => {
+        const posY = lands[row][col].posY
+        const posX = lands[row][col].posX
+        let xx = true
+        let yy= true
 
-      if (x >= posX && x <= posX + vw * 0.1) {
-      console.log(posX)
-      console.log(x)
-        xx = false
-      };
-      // debugger
-      if (y >= posY && y <= posY + vw * 0.1) {
-        console.log(posY)
-        console.log(y)
-        yy = false
-      };
+        if (x >= posX && x <= posX + vw * 0.1) {
+        console.log(posX)
+        console.log(x)
+          xx = false
+        };
 
-      // debugger
-      if (!xx && !yy) {
-        open(row, col)
-      }
-    })
-  }
+        if (y >= posY && y <= posY + vw * 0.1) {
+          console.log(posY)
+          console.log(y)
+          yy = false
+        };
+
+        if (!xx && !yy) {
+          open(row, col)
+        }
+      })
+    }
   }
 
   function open (row, col) {
@@ -183,6 +184,7 @@
   }
 
   function even (number) {
+    return number
     number = Math.round(number)
     if (number % 2 !== 0) return number + 1
     return number
@@ -191,15 +193,25 @@
 
 </script>
 
-<canvas
-	bind:this={canvas}
-	width={vw}
-	height={vh}
-></canvas>
+<div class='main' bind:this={main}>
+  <div class='score' bind:this={score}>
+    Score
+  </div>
+  <canvas
+    bind:this={canvas}
+    width={vw}
+    height={vw}
+  ></canvas>
+</div>
 
 <style>
 	canvas {
     margin: 30px 0;
 		background-color: rgb(22, 22, 22);
-	}
+  }
+
+  .main {
+    margin: auto;
+    max-width: 600px;
+  }
 </style>
