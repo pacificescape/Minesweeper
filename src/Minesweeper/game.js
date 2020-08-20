@@ -43,11 +43,11 @@ class Game {
         if (field.open && field.mine) { }
 
         if (field.open) {
-          ctx.fillStyle = field.color
+          ctx.fillStyle = field.valueColor
 
-          ctx.font = `${field.sideWidth / 2}px serif`;
-          let textOffset = ctx.measureText(field.value) / 2
-          ctx.fillText(field.value, field.posX + field.sideWidth / 2 - textOffset, field.posY + field.sideWidth / 2 - textOffset)
+          ctx.font = `${this.land.sideWidth / 2}px serif`;
+          let textOffset = ctx.measureText(`${field.value}`).width / 2
+          ctx.fillText(field.value, field.posX + this.land.sideWidth / 2 - textOffset, field.posY + this.land.sideWidth / 2 - textOffset)
         }
       }
     }
@@ -66,8 +66,8 @@ class Game {
   }
 
   click(event) {
-    const x = event.pageX - this.elemLeft
-    const y = event.pageY - this.elemTop
+    const x = event.pageX - this.offsetLeft
+    const y = event.pageY - this.offsetTop
 
     this.land.click(x, y)
   }

@@ -64,7 +64,7 @@ class Land {
     for (let col = 0; col < COMPLEXITY; col++) {
       if (x > Math.round(col * this.sideWidth)) {
         if (x < Math.round((col + 1) * this.sideWidth)) {
-          targetX = col
+          targetY = col
           break
         }
       }
@@ -73,7 +73,7 @@ class Land {
     for (let row = 0; row < COMPLEXITY; row++) {
       if (y > Math.round(row * this.sideWidth)) {
         if (y < Math.round((row + 1) * this.sideWidth)) {
-          targetY = row
+          targetX = row
           break
         }
       }
@@ -91,12 +91,13 @@ class Land {
     const field = this.land[row][col]
 
     if (field.open) return
+    field.open = true
     field.color = '#8a8a8a'
 
     if (field.mine) {
       field.value = '*'
       field.color = 'rgb(233, 66, 89)'
-      this.gameOver(field)
+      this.toGameOver(field)
     }
 
     let value = 0
@@ -125,8 +126,8 @@ class Land {
     }
   }
 
-  gameOver () {
-    this.gameOver = true
+  toGameOver () {
+    // this.gameOver = true
   }
 }
 
