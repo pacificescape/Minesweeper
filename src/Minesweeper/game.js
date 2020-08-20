@@ -12,19 +12,14 @@ class Game {
     this.offsetLeft = offsetLeft
     this.offsetTop = offsetTop
     this.vw = canvas.width
-    this.vh = canvas.height
+    this.vh = canvas.width
 
     this.click = this.click.bind(this)
     this.resize = this.resize.bind(this)
   }
 
   start() {
-    requestAnimationFrame(this.loop)
-    const ctx = this.canvas.getContext('2d')
-
-    ctx.fillStyle = "#fff";
-    ctx.font = `111px serif`;
-    ctx.fillText('started', 20, 100)
+    this.loop()
   }
 
   loop = () => {
@@ -42,6 +37,7 @@ class Game {
       for (let col = 0; col < COMPLEXITY; col++) {
         const field = this.land.get(row, col)
 
+        ctx.fillStyle = field.color
         ctx.fillRect(field.posX, field.posY, field.posX + this.land.sideWidth, field.posY + this.land.sideWidth,);
 
         if (field.open && field.mine) { }
@@ -77,7 +73,14 @@ class Game {
   }
 
   resize(vw, vh, offsetLeft, offsetTop) {
-    this.land.resize(vw, vh, offsetLeft, offsetTop) // width of canvas or vp?
+    cancelAnimationFrame(this.loop)
+    this.offsetLeft = offsetLeft
+    this.offsetTop = offsetTop
+    this.vw = vw
+    this.vh = vw
+
+    this.land.resize(this.vw, this.vh, this.offsetLeft, this.offsetTop) // width of canvas or vp?
+    requestAnimationFrame(this.loop)
   }
 }
 
