@@ -444,6 +444,217 @@ var app = (function () {
     	}
     }
 
+    const COMPLEXITY = 8;
+    const colors = {
+      1: '#1b76d1',
+      2: '#3a8e3c',
+      3: '#d32f2f',
+      4: '#7c21a1',
+      5: '#f4c20d',
+      6: '#ed44b5',
+      7: '#48e6f1',
+      8: '#f4840d'
+    };
+    // ctx.fillStyle = land.color ? land.color : (row + col) % 2 === 1 ? '#a7d948' : '#8ecc39'
+
+    class Land {
+      constructor(width, height, offsetLeft, offsetTop) {
+        this.land = [];
+        this.gameOver = false;
+        this.offsetLeft = offsetLeft;
+        this.offsetTop = offsetTop;
+        this.sideWidth = Math.round(width / COMPLEXITY);
+
+        for (let row = 0; row < COMPLEXITY; row++) {
+          for (let col = 0; col < COMPLEXITY; col++) {
+            this.land[row] = this.land[row] || [];
+
+            this.land[row][col] = {
+              color: (row + col) % 2 === 1 ? '#a7d948' : '#8ecc39',
+              valueColor: '#f4840d',
+              posX: Math.round(col * this.sideWidth),
+              posY: Math.round(row * this.sideWidth),
+              open: false,
+              mine: Math.random() > 0.8 ? true : false,
+              value: ''
+            };
+          }
+        }
+      }
+
+      get (row, col) {
+        return this.land[row][col]
+      }
+
+      resize(width, height, offsetLeft, offsetTop) {
+        this.offsetLeft = offsetLeft;
+        this.offsetTop = offsetTop;
+        this.sideWidth = Math.round(width / COMPLEXITY);
+
+        for (let row = 0; row < COMPLEXITY; row++) {
+          for (let col = 0; col < COMPLEXITY; col++) {
+            this.land[row] = this.land[row] || [];
+
+            this.land[row][col].posX = Math.round(row * width / COMPLEXITY);
+            this.land[row][col].posY = Math.round(col * height / COMPLEXITY);
+          }
+        }
+      }
+
+      click(x, y) {
+        if (this.gameOver) return
+
+        let targetX = null;
+        let targetY = null;
+
+        for (let col = 0; col < COMPLEXITY; col++) {
+          if (x > Math.round(col * this.sideWidth)) {
+            if (x < Math.round((col + 1) * this.sideWidth)) {
+              targetX = col;
+              break
+            }
+          }
+        }
+
+        for (let row = 0; row < COMPLEXITY; row++) {
+          if (y > Math.round(row * this.sideWidth)) {
+            if (y < Math.round((row + 1) * this.sideWidth)) {
+              targetY = row;
+              break
+            }
+          }
+        }
+
+        if (!targetX || !targetY) {
+          console.log('targetX, targetY error');
+          return
+        }
+
+        this.open(targetX, targetY);
+      }
+
+      open (row, col) {
+        const field = this.land[row][col];
+
+        if (field.open) return
+        field.color = '#8a8a8a';
+
+        if (field.mine) {
+          field.value = '*';
+          field.color = 'rgb(233, 66, 89)';
+          this.gameOver(field);
+        }
+
+        let value = 0;
+        try {
+          for (let r = -1; r < 2; r++) {
+            for (let c = -1; c < 2; c++) {
+              if (this.land[row + r] && this.land[row + r][col + c] && this.land[row + r][col + c].mine) value += 1;
+            }
+          }
+        } catch (err) {
+          console.log(err);
+        }
+
+        field.value = value;
+        field.valueColor = colors[value];
+
+        if (value === 0) {
+          for (let r = -1; r < 2; r++) {
+            for (let c = -1; c < 2; c++) {
+              if (c === 0 && r === 0) continue
+              if (row + r < 0 || row + r > 7) continue
+              if (col + c < 0 || col + c > 7) continue
+              this.open(row + r, col + c);
+            }
+          }
+        }
+      }
+
+      gameOver () {
+        this.gameOver = true;
+      }
+    }
+
+    const COMPLEXITY$1 = 8;
+    const ms = new Date();
+
+    class Game {
+      constructor(vw, vh, offsetLeft, offsetTop, canvas) {
+        this.land = new Land(vw, vh, offsetLeft, offsetTop);
+        this.canvas = canvas;
+        this.offsetLeft = offsetLeft;
+        this.offsetTop = offsetTop;
+        this.vw = canvas.width;
+        this.vh = canvas.height;
+
+        this.click = this.click.bind(this);
+        this.resize = this.resize.bind(this);
+      }
+
+      start() {
+        requestAnimationFrame(this.loop);
+        const ctx = this.canvas.getContext('2d');
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `111px serif`;
+        ctx.fillText('started', 20, 100);
+      }
+
+      loop = () => {
+        requestAnimationFrame(this.loop);
+        if (!this.canvas.getContext) return
+
+        // clear canvas
+
+        const ctx = this.canvas.getContext('2d');
+        ctx.clearRect(0, 0, this.vw, this.vh);
+
+        // render land (field/cell)
+
+        for (let row = 0; row < COMPLEXITY$1; row++) {
+          for (let col = 0; col < COMPLEXITY$1; col++) {
+            const field = this.land.get(row, col);
+
+            ctx.fillRect(field.posX, field.posY, field.posX + this.land.sideWidth, field.posY + this.land.sideWidth,);
+
+            if (field.open && field.mine) ;
+
+            if (field.open) {
+              ctx.fillStyle = field.color;
+
+              ctx.font = `${field.sideWidth / 2}px serif`;
+              let textOffset = ctx.measureText(field.value) / 2;
+              ctx.fillText(field.value, field.posX + field.sideWidth / 2 - textOffset, field.posY + field.sideWidth / 2 - textOffset);
+            }
+          }
+        }
+
+        // timers
+
+        ctx.fillStyle = "#ccc";
+        ctx.font = `${this.vw / 14}px sans`;
+        let date = new Date();
+        let text = date.getHours() + ':' + date.getMinutes() + ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
+        let width = ctx.measureText(text).width;
+        ctx.fillText(text, (this.vw - width) / 2, this.vh - 40);
+
+        ctx.font = `${this.vw / 14}px serif`;
+        ctx.fillText(Math.round((new Date() - ms) / 1000) + 's', 20, this.vh - 40);
+      }
+
+      click(event) {
+        const x = event.pageX - this.elemLeft;
+        const y = event.pageY - this.elemTop;
+
+        this.land.click(x, y);
+      }
+
+      resize(vw, vh, offsetLeft, offsetTop) {
+        this.land.resize(vw, vh, offsetLeft, offsetTop); // width of canvas or vp?
+      }
+    }
+
     /* src/Minesweeper/Minesweeper.svelte generated by Svelte v3.24.1 */
 
     const { console: console_1 } = globals;
@@ -463,13 +674,13 @@ var app = (function () {
     			t1 = space();
     			canvas_1 = element("canvas");
     			attr_dev(div0, "class", "score");
-    			add_location(div0, file$1, 196, 2, 5311);
+    			add_location(div0, file$1, 45, 2, 1355);
     			attr_dev(canvas_1, "width", /*vw*/ ctx[3]);
     			attr_dev(canvas_1, "height", /*vw*/ ctx[3]);
     			attr_dev(canvas_1, "class", "svelte-1ur2p5e");
-    			add_location(canvas_1, file$1, 199, 2, 5370);
+    			add_location(canvas_1, file$1, 48, 2, 1414);
     			attr_dev(div1, "class", "main svelte-1ur2p5e");
-    			add_location(div1, file$1, 195, 0, 5273);
+    			add_location(div1, file$1, 44, 0, 1317);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -513,182 +724,32 @@ var app = (function () {
     	return block;
     }
 
-    const COMPLEXITY = 8;
-
-    function even(number) {
-    	return number;
-    }
+    const COMPLEXITY$2 = 8;
 
     function instance$1($$self, $$props, $$invalidate) {
-    	let main;
-    	let score;
-    	let elemLeft = 0;
-    	let elemTop = 0;
+    	let main, score, offsetLeft = 0, offsetTop = 0, canvas, minesweeper;
     	const ms = new Date();
-    	let canvas;
-    	const sleep = millis => new Promise(resolve => setTimeout(resolve, millis));
-
-    	const colors = {
-    		1: "#1b76d1",
-    		2: "#3a8e3c",
-    		3: "#d32f2f",
-    		4: "#7c21a1",
-    		5: "#f4c20d",
-    		6: "#ed44b5",
-    		7: "#48e6f1",
-    		8: "#f4840d"
-    	};
-
-    	let vw = even(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
-    	let vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    	let vw = Math.round(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
+    	let vh = Math.round(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
     	vw = vw > 600 ? 600 : vw;
-    	let vwd = even(vw * 0.1);
 
     	window.addEventListener("resize", () => {
-    		$$invalidate(3, vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0)));
-    		vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
+    		$$invalidate(3, vw = Math.round(Math.max(main.offsetWidth || 0, window.innerWidth || 0)));
+    		vh = Math.round(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
     		$$invalidate(3, vw = vw > 600 ? 600 : vw);
-    		vwd = even(vw * 0.1);
-    		console.log("vw", vw);
-    		console.log("vh", vh);
-    		elemLeft = even(canvas.offsetLeft + canvas.clientLeft);
-    		elemTop = even(canvas.offsetTop + canvas.clientTop);
+    		console.log("resize: (", vw, vh, ")");
+    		offsetLeft = Math.round(canvas.offsetLeft + canvas.clientLeft);
+    		offsetTop = Math.round(canvas.offsetTop + canvas.clientTop);
+    		minesweeper.resize(vw, vh, offsetLeft, offsetTop);
     	});
-
-    	console.log("vw", vw);
-    	console.log("vh", vh);
-    	const lands = [];
-
-    	for (let l = 0; l < 64; l++) {
-    		const line = Math.floor(l / 8);
-    		lands[line] = lands[line] || [];
-
-    		lands[line].push({
-    			color: "",
-    			// posX: even(line * vw / COMPLEXITY),
-    			// posY: even(col  * vw / COMPLEXITY),
-    			open: false,
-    			mine: Math.random() > 0.8 ? true : false,
-    			value: ""
-    		});
-    	}
 
     	onMount(() => {
-    		$$invalidate(3, vw = even(Math.max(main.offsetWidth || 0, window.innerWidth || 0)));
-    		vh = even(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0));
-    		$$invalidate(3, vw = vw > 600 ? 600 : vw);
-    		elemLeft = canvas.offsetLeft + canvas.clientLeft;
-    		elemTop = canvas.offsetTop + canvas.clientTop;
-
-    		canvas.addEventListener("click", evt => {
-    			click(evt);
-    			cancelAnimationFrame(loop);
-    		});
-
-    		requestAnimationFrame(loop);
+    		offsetLeft = canvas.offsetLeft + canvas.clientLeft;
+    		offsetTop = canvas.offsetTop + canvas.clientTop;
+    		minesweeper = new Game(vw, vh, offsetLeft, offsetTop, canvas);
+    		canvas.addEventListener("click", minesweeper.click);
+    		minesweeper.start();
     	});
-
-    	function loop() {
-    		requestAnimationFrame(loop);
-    		const ctx = canvas.getContext("2d");
-    		ctx.clearRect(0, 0, vw, vh);
-
-    		for (let [row, line] of lands.entries()) {
-    			line.forEach((land, col) => {
-    				if (!canvas.getContext) return;
-
-    				(land.posX = even(row * vw / COMPLEXITY), land.posY = even(col * vw / COMPLEXITY), ctx.fillStyle = land.color
-    				? land.color
-    				: (row + col) % 2 === 1 ? "#a7d948" : "#8ecc39");
-
-    				ctx.fillRect(even(land.posX), even(land.posY), vw / COMPLEXITY + 1, vw / COMPLEXITY + 1);
-
-    				if (land.open && land.mine) ;
-
-    				if (land.open) {
-    					ctx.fillStyle = land.value === 0
-    					? "#fff"
-    					: land.value === "*" ? "#000" : "rgb(77, 255, 77)";
-
-    					ctx.font = "30px serif";
-    					ctx.fillText(land.value, even(land.posX) + even(vwd) / 2, even(land.posY) + even(vwd) / 2);
-    				}
-    			});
-    		}
-
-    		ctx.fillStyle = "#ccc";
-    		ctx.font = "10px serif";
-    		let date = new Date();
-    		let text = date.getHours() + ":" + date.getMinutes() + ":" + date.getMilliseconds() + " " + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
-    		let width = ctx.measureText(text).width;
-    		ctx.fillText(text, (vw - width) / 2, vh - 40);
-    		ctx.font = "10px serif";
-    		ctx.fillText(Math.round((new Date() - ms) / 1000) + "s", 20, vh - 40);
-    	}
-
-    	function click(event) {
-    		let x = event.pageX, y = event.pageY - elemTop;
-
-    		for (let [col, line] of lands.entries()) {
-    			const target = line.map((land, row) => {
-    				const posY = lands[row][col].posY;
-    				const posX = lands[row][col].posX;
-    				let xx = true;
-    				let yy = true;
-
-    				if (x >= posX && x <= posX + vw * 0.1) {
-    					console.log(posX);
-    					console.log(x);
-    					xx = false;
-    				}
-
-    				
-
-    				if (y >= posY && y <= posY + vw * 0.1) {
-    					console.log(posY);
-    					console.log(y);
-    					yy = false;
-    				}
-
-    				
-
-    				if (!xx && !yy) {
-    					open(row, col);
-    				}
-    			});
-    		}
-    	}
-
-    	function open(row, col) {
-    		if (lands[row][col].open) return;
-    		lands[row][col].open = true;
-    		lands[row][col].color = "#8a8a8a";
-    		if (lands[row][col].mine) return lands[row][col].value = "*";
-    		let value = 0;
-
-    		try {
-    			for (let r = -1; r < 2; r++) {
-    				for (let c = -1; c < 2; c++) {
-    					if (lands[row + r] && lands[row + r][col + c] && lands[row + r][col + c].mine) value += 1;
-    				}
-    			}
-    		} catch(err) {
-    			console.log(err);
-    		}
-
-    		lands[row][col].value = value;
-
-    		if (value === 0) {
-    			for (let r = -1; r < 2; r++) {
-    				for (let c = -1; c < 2; c++) {
-    					if (c === 0 && r === 0) continue;
-    					if (row + r < 0 || row + r > 7) continue;
-    					if (col + c < 0 || col + c > 7) continue;
-    					open(row + r, col + c);
-    				}
-    			}
-    		}
-    	}
 
     	const writable_props = [];
 
@@ -722,34 +783,28 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		onMount,
-    		COMPLEXITY,
+    		Game,
+    		COMPLEXITY: COMPLEXITY$2,
     		main,
     		score,
-    		elemLeft,
-    		elemTop,
-    		ms,
+    		offsetLeft,
+    		offsetTop,
     		canvas,
-    		sleep,
-    		colors,
+    		minesweeper,
+    		ms,
     		vw,
-    		vh,
-    		vwd,
-    		lands,
-    		loop,
-    		click,
-    		open,
-    		even
+    		vh
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("main" in $$props) $$invalidate(0, main = $$props.main);
     		if ("score" in $$props) $$invalidate(1, score = $$props.score);
-    		if ("elemLeft" in $$props) elemLeft = $$props.elemLeft;
-    		if ("elemTop" in $$props) elemTop = $$props.elemTop;
+    		if ("offsetLeft" in $$props) offsetLeft = $$props.offsetLeft;
+    		if ("offsetTop" in $$props) offsetTop = $$props.offsetTop;
     		if ("canvas" in $$props) $$invalidate(2, canvas = $$props.canvas);
+    		if ("minesweeper" in $$props) minesweeper = $$props.minesweeper;
     		if ("vw" in $$props) $$invalidate(3, vw = $$props.vw);
     		if ("vh" in $$props) vh = $$props.vh;
-    		if ("vwd" in $$props) vwd = $$props.vwd;
     	};
 
     	if ($$props && "$$inject" in $$props) {
