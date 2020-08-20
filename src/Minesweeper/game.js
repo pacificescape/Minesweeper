@@ -54,12 +54,12 @@ class Game {
 
     // timers
 
-    ctx.fillStyle = "#ccc";
-    ctx.font = `${this.vw / 14}px sans`;
-    let date = new Date()
-    let text = date.getHours() + ':' + date.getMinutes() + ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
-    let width = ctx.measureText(text).width
-    ctx.fillText(text, (this.vw - width) / 2, this.vh - 40);
+    // ctx.fillStyle = "#ccc";
+    // ctx.font = `${this.vw / 14}px sans`;
+    // let date = new Date()
+    // let text = date.getHours() + ':' + date.getMinutes() + ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
+    // let width = ctx.measureText(text).width
+    // ctx.fillText(text, (this.vw - width) / 2, this.vh - 40);
 
     ctx.font = `${this.vw / 14}px serif`;
     ctx.fillText(Math.round((new Date() - ms) / 1000) + 's', 20, this.vh - 40)

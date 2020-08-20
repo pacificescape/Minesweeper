@@ -79,7 +79,7 @@ class Land {
       }
     }
 
-    if (!targetX || !targetY) {
+    if (!(targetX >= 0) || !(targetY >= 0)) { // target is null or 0-7
       console.log('targetX, targetY error')
       return
     }
@@ -98,6 +98,7 @@ class Land {
       field.value = '*'
       field.color = 'rgb(233, 66, 89)'
       this.toGameOver(field)
+      return
     }
 
     let value = 0
