@@ -1,9 +1,6 @@
 import Land from './land'
 const COMPLEXITY = 12
-let elemLeft = 0
-let elemTop = 0
-const ms = new Date()
-const sleep = (millis) => new Promise(resolve => setTimeout(resolve, millis))
+// const sleep = (millis) => new Promise(resolve => setTimeout(resolve, millis))
 
 class Game {
   constructor(vw, vh, offsetLeft, offsetTop, canvas) {
@@ -44,15 +41,14 @@ class Game {
 
         if (field.open && field.mine) { }
 
-        if (field.open || true) {
-          ctx.fillStyle = field.valueColor
-
-          field.value = field.mine ? 'm' : 'l'
-
-          ctx.font = `${this.land.sideWidth / 2}px serif`;
-          let textOffset = ctx.measureText(`${field.value}`).width / 2
-          ctx.fillText(field.value, field.posX + this.land.sideWidth / 2 - textOffset, field.posY + this.land.sideWidth / 2 - textOffset)
+        if (!field.open) {
+          field.value = field.flag ? 'F' : '' // field.mine ? 'm' : 'e'
         }
+        ctx.fillStyle = field.valueColor
+
+        ctx.font = `${this.land.sideWidth / 2}px serif`;
+        let textOffset = ctx.measureText(`${field.value}`).width / 2
+        ctx.fillText(field.value, field.posX + this.land.sideWidth / 2 - textOffset, field.posY + this.land.sideWidth / 2 - textOffset)
       }
     }
 
@@ -65,15 +61,18 @@ class Game {
     // let width = ctx.measureText(text).width
     // ctx.fillText(text, (this.vw - width) / 2, this.vh - 40);
 
-    ctx.font = `${this.vw / 14}px serif`;
-    ctx.fillText(Math.round((new Date() - ms) / 1000) + 's', 20, this.vh - 40)
+    if (this.startTime) {
+      ctx.font = `${this.vw / 14}px serif`;
+      ctx.fillText(Math.round((new Date() - this.startTime) / 1000) + 's', 20, this.vh - 40)
+    }
   }
 
-  click(event) {
+  click(event, flag) {
     const x = event.pageX - this.offsetLeft
     const y = event.pageY - this.offsetTop
+    if (!this.startTime) this.startTime = new Date()
 
-    this.land.click(x, y)
+    this.land.click(x, y, flag)
   }
 
   resize(vw, vh, offsetLeft, offsetTop) {

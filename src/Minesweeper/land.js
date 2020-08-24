@@ -42,6 +42,7 @@ class Land {
           posY: Math.round(row * this.sideWidth),
           open: false,
           mine: Math.random() > 0.7 ? true : false,
+          flag: false,
           value: ''
         }
       }
@@ -82,7 +83,7 @@ class Land {
     }
   }
 
-  click(x, y) {
+  click(x, y, flag) {
     if (this.gameOver) return
 
     let targetCol
@@ -106,6 +107,9 @@ class Land {
       }
     }
 
+
+    if (flag) return this.flag(targetCol, targetRow)
+    if (this.land[targetRow][targetCol].flag) return this.flag(targetCol, targetRow)
     if (!this.generated) this.sanitaze(targetCol, targetRow)
 
     if (!(targetCol >= 0) || !(targetRow >= 0)) { // target is null or 0-7
@@ -154,6 +158,10 @@ class Land {
         }
       }
     }
+  }
+
+  flag (col, row) {
+    this.land[row][col].flag = !this.land[row][col].flag
   }
 
   toGameOver () {
