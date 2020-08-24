@@ -12,7 +12,7 @@
   const COMPLEXITY = 12
   const FLAGDELAY = 200
 
-  let main, touch, score, offsetLeft = 0, offsetTop = 0, canvas, minesweeper
+  let main, touch, touchTime = 0, score, offsetLeft = 0, offsetTop = 0, canvas, minesweeper
 
   let vw = Math.round(Math.max(document.documentElement.clientWidth  || 0, window.innerWidth  || 0))
   let vh = Math.round(Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0))
@@ -31,12 +31,17 @@
     minesweeper.resize(vw, vh, offsetLeft, offsetTop)
   })
 
-  function onTouch (evt) {
-    touch = new Date()
+  function handleStart (evt) {
+    touch = evt.changedTouches ? evt.changedTouches[0] : evt
+    touchTime = new Date()
+    evt.preventDefault()
+
+    // console.log("touchstart.")
   }
 
-  function onTouchEnd (evt) {
-    const ms = new Date() - touch
+  function handleEnd (evt) {
+    const ms = new Date() - touchTime
+    evt = touch ? touch : evt
 
     if (ms <= FLAGDELAY) {
       minesweeper.click(evt)
@@ -45,8 +50,12 @@
     }
   }
 
-  function onTouchCancel () {
+  function handleCancel () {
     touch = null
+  }
+
+  function handleMove () {
+
   }
 
 	onMount(() => {
@@ -54,12 +63,14 @@
     offsetTop  = canvas.offsetTop  + canvas.clientTop
 
     minesweeper = new Game(vw, vh, offsetLeft, offsetTop, canvas)
+    window.oncontextmenu = (evt) => evt
+    canvas.addEventListener("touchstart", handleStart, false);
+    canvas.addEventListener("touchend", handleEnd, false);
+    canvas.addEventListener("touchcancel", handleCancel, false);
+    canvas.addEventListener("touchmove", handleMove, false);
 
-    canvas.addEventListener('mousedown', onTouch)
-    canvas.addEventListener('mouseup', onTouchEnd)
-    canvas.addEventListener('ontouchstart', onTouch)
-    canvas.addEventListener('ontouchmove', onTouchCancel)
-    canvas.addEventListener('ontouchend', onTouchEnd)
+    canvas.addEventListener('mousedown', handleStart)
+    canvas.addEventListener('mouseup', handleEnd)
 
     minesweeper.start()
   })
