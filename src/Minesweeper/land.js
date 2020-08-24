@@ -1,4 +1,4 @@
-const COMPLEXITY = 8
+const COMPLEXITY = 12
 const colors = {
   1: '#1b76d1',
   2: '#3a8e3c',
@@ -14,11 +14,23 @@ const colors = {
 class Land {
   constructor(width, height, offsetLeft, offsetTop) {
     this.land = []
+    this.generated = false
     this.gameOver = false
     this.offsetLeft = offsetLeft
     this.offsetTop = offsetTop
     this.sideWidth = Math.round(width / COMPLEXITY)
 
+    this.generate()
+
+    this.get= this.get.bind(this)
+    this.open = this.open.bind(this)
+    this.click= this.click.bind(this)
+    this.resize = this.resize.bind(this)
+    this.generate = this.generate.bind(this)
+    this.toGameOver = this.toGameOver.bind(this)
+  }
+
+  generate () {
     for (let row = 0; row < COMPLEXITY; row++) {
       for (let col = 0; col < COMPLEXITY; col++) {
         this.land[row] = this.land[row] || []
@@ -29,11 +41,26 @@ class Land {
           posX: Math.round(col * this.sideWidth),
           posY: Math.round(row * this.sideWidth),
           open: false,
-          mine: Math.random() > 0.8 ? true : false,
+          mine: Math.random() > 0.7 ? true : false,
           value: ''
         }
       }
     }
+  }
+
+  sanitaze (col, row) {
+    for (let r = -1; r < 2; r++) {
+      for (let c = -1; c < 2; c++) {
+        if (this.land[row + r]) {
+          if (this.land[row + r][col + c]) {
+            console.log(row + r, col + c, this.land[row + r][col + c].mine)
+            this.land[row + r][col + c].mine = false
+            console.log(row + r, col + c, this.land[row + r][col + c].mine)
+          }
+        }
+      }
+    }
+    this.generated = true
   }
 
   get (row, col) {
@@ -49,8 +76,8 @@ class Land {
       for (let col = 0; col < COMPLEXITY; col++) {
         this.land[row] = this.land[row] || []
 
-        this.land[row][col].posX = Math.round(row * width / COMPLEXITY)
-        this.land[row][col].posY = Math.round(col * height / COMPLEXITY)
+        this.land[row][col].posX = Math.round(col * width / COMPLEXITY)
+        this.land[row][col].posY = Math.round(row * height / COMPLEXITY)
       }
     }
   }
@@ -58,13 +85,13 @@ class Land {
   click(x, y) {
     if (this.gameOver) return
 
-    let targetX = null
-    let targetY = null
+    let targetCol
+    let targetRow
 
     for (let col = 0; col < COMPLEXITY; col++) {
       if (x > Math.round(col * this.sideWidth)) {
-        if (x < Math.round((col + 1) * this.sideWidth)) {
-          targetY = col
+        if (x <= Math.round((col + 1) * this.sideWidth)) {
+          targetCol = col
           break
         }
       }
@@ -72,27 +99,29 @@ class Land {
 
     for (let row = 0; row < COMPLEXITY; row++) {
       if (y > Math.round(row * this.sideWidth)) {
-        if (y < Math.round((row + 1) * this.sideWidth)) {
-          targetX = row
+        if (y <= Math.round((row + 1) * this.sideWidth)) {
+          targetRow = row
           break
         }
       }
     }
 
-    if (!(targetX >= 0) || !(targetY >= 0)) { // target is null or 0-7
+    if (!this.generated) this.sanitaze(targetCol, targetRow)
+
+    if (!(targetCol >= 0) || !(targetRow >= 0)) { // target is null or 0-7
       console.log('targetX, targetY error')
       return
     }
 
-    this.open(targetX, targetY)
+    this.open(targetCol, targetRow)
   }
 
-  open (row, col) {
+  open (col, row) {
     const field = this.land[row][col]
 
     if (field.open) return
     field.open = true
-    field.color = '#8a8a8a'
+    field.color = (row + col) % 2 === 1 ? '#8a8a8a' : '#868686'
 
     if (field.mine) {
       field.value = '*'
@@ -119,9 +148,9 @@ class Land {
       for (let r = -1; r < 2; r++) {
         for (let c = -1; c < 2; c++) {
           if (c === 0 && r === 0) continue
-          if (row + r < 0 || row + r > 7) continue
-          if (col + c < 0 || col + c > 7) continue
-          this.open(row + r, col + c)
+          if (row + r < 0 || row + r > COMPLEXITY - 1) continue
+          if (col + c < 0 || col + c > COMPLEXITY - 1) continue
+          this.open(col + c, row + r)
         }
       }
     }

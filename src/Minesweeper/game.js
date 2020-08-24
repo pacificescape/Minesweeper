@@ -1,5 +1,5 @@
 import Land from './land'
-const COMPLEXITY = 8
+const COMPLEXITY = 12
 let elemLeft = 0
 let elemTop = 0
 const ms = new Date()
@@ -14,6 +14,8 @@ class Game {
     this.vw = canvas.width
     this.vh = canvas.width
 
+    this.start = this.start.bind(this)
+    this.loop = this.loop.bind(this)
     this.click = this.click.bind(this)
     this.resize = this.resize.bind(this)
   }
@@ -22,7 +24,7 @@ class Game {
     this.loop()
   }
 
-  loop = () => {
+  loop() {
     requestAnimationFrame(this.loop);
     if (!this.canvas.getContext) return
 
@@ -42,8 +44,10 @@ class Game {
 
         if (field.open && field.mine) { }
 
-        if (field.open) {
+        if (field.open || true) {
           ctx.fillStyle = field.valueColor
+
+          field.value = field.mine ? 'm' : 'l'
 
           ctx.font = `${this.land.sideWidth / 2}px serif`;
           let textOffset = ctx.measureText(`${field.value}`).width / 2

@@ -50,7 +50,7 @@
     bind:this={canvas}
     width={vw}
     height={vw}
-  ></canvas>
+  >CANVAS NOT DISPLAYED</canvas>
 </div>
 
 <style>
