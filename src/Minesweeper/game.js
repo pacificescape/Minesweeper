@@ -20,6 +20,8 @@ class Game {
     this.shake = false
     this.translateX = 0
     this.translateY = 0
+
+    this.i = 0
   }
 
   start() {
@@ -34,22 +36,6 @@ class Game {
 
     const ctx = this.canvas.getContext('2d')
     ctx.clearRect(0, 0, this.vw, this.vh)
-
-    ctx.translate(0, 0)
-    ctx.restore()
-
-    if (this.shake) {
-      let translateX = 0.25 - Math.random() / 2
-      let translateY = 0.25 - Math.random() / 2
-      ctx.translate(translateX, translateY)
-      this.translateX += translateX
-      this.translateY += translateY
-    } else {
-      ctx.translate(-this.translateX, -this.translateY)
-      this.translateX = 0
-      this.translateY = 0
-    }
-
 
     // render land (field/cell)
 
@@ -86,7 +72,6 @@ class Game {
     if (!this.startTime) this.startTime = new Date()
 
     this.land.click(x, y, flag)
-    this.toShake()
   }
 
   resize(vw, vh, offsetLeft, offsetTop) {

@@ -28,6 +28,11 @@ class Land {
     this.resize = this.resize.bind(this)
     this.generate = this.generate.bind(this)
     this.toGameOver = this.toGameOver.bind(this)
+
+    this.shaker = {
+      translateX: 0,
+      translateY: 0
+    }
   }
 
   generate () {
@@ -65,7 +70,12 @@ class Land {
   }
 
   get (row, col) {
-    return this.land[row][col]
+    const cell =  { ...this.land[row][col] }
+
+    cell.posX += this.shaker.translateX
+    cell.posY += this.shaker.translateY
+
+    return cell
   }
 
   resize(width, height, offsetLeft, offsetTop) {
@@ -165,7 +175,23 @@ class Land {
   }
 
   toGameOver () {
-    // this.gameOver = true
+    this.gameOver = true
+    this.toShake()
+  }
+
+  toShake() {
+    let shake = setInterval(() => {
+        let translateX = Math.random() * 1.4
+        let translateY = Math.random()
+
+        this.shaker.translateX = translateX
+        this.shaker.translateY = translateY
+    }, 30)
+
+    setTimeout(() => clearInterval(shake), 600)
+
+    this.shaker.translateX = 0
+    this.shaker.translateY = 0
   }
 }
 
