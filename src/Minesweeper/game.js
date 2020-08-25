@@ -15,6 +15,11 @@ class Game {
     this.loop = this.loop.bind(this)
     this.click = this.click.bind(this)
     this.resize = this.resize.bind(this)
+    this.toShake = this.toShake.bind(this)
+
+    this.shake = false
+    this.translateX = 0
+    this.translateY = 0
   }
 
   start() {
@@ -30,6 +35,22 @@ class Game {
     const ctx = this.canvas.getContext('2d')
     ctx.clearRect(0, 0, this.vw, this.vh)
 
+    ctx.translate(0, 0)
+    ctx.restore()
+
+    if (this.shake) {
+      let translateX = 0.25 - Math.random() / 2
+      let translateY = 0.25 - Math.random() / 2
+      ctx.translate(translateX, translateY)
+      this.translateX += translateX
+      this.translateY += translateY
+    } else {
+      ctx.translate(-this.translateX, -this.translateY)
+      this.translateX = 0
+      this.translateY = 0
+    }
+
+
     // render land (field/cell)
 
     for (let row = 0; row < COMPLEXITY; row++) {
@@ -37,7 +58,7 @@ class Game {
         const field = this.land.get(row, col)
 
         ctx.fillStyle = field.color
-        ctx.fillRect(field.posX, field.posY, field.posX + this.land.sideWidth, field.posY + this.land.sideWidth,);
+        ctx.fillRect(field.posX, field.posY, field.posX + this.land.sideWidth + 5, field.posY + this.land.sideWidth + 5); // +5 do not work (gap bug)
 
         if (field.open && field.mine) { }
 
@@ -52,27 +73,20 @@ class Game {
       }
     }
 
-    // timers
-
-    // ctx.fillStyle = "#ccc";
-    // ctx.font = `${this.vw / 14}px sans`;
-    // let date = new Date()
-    // let text = date.getHours() + ':' + date.getMinutes() + ':' + date.getMilliseconds() + ' ' + date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
-    // let width = ctx.measureText(text).width
-    // ctx.fillText(text, (this.vw - width) / 2, this.vh - 40);
-
     if (this.startTime) {
-      ctx.font = `${this.vw / 14}px serif`;
-      ctx.fillText(Math.round((new Date() - this.startTime) / 1000) + 's', 20, this.vh - 40)
+      this.timer = Math.round((new Date() - this.startTime) / 1000)
+      // ctx.font = `${this.vw / 14}px serif`;
+      // ctx.fillText(this.timer + 's', 20, this.vh - 40)
     }
   }
 
-  click(event, flag) {
-    const x = event.pageX - this.offsetLeft
-    const y = event.pageY - this.offsetTop
+  click(touch, flag) {
+    const x = touch.pageX - this.offsetLeft
+    const y = touch.pageY - this.offsetTop
     if (!this.startTime) this.startTime = new Date()
 
     this.land.click(x, y, flag)
+    this.toShake()
   }
 
   resize(vw, vh, offsetLeft, offsetTop) {
@@ -84,6 +98,11 @@ class Game {
 
     this.land.resize(this.vw, this.vh, this.offsetLeft, this.offsetTop) // width of canvas or vp?
     requestAnimationFrame(this.loop)
+  }
+
+  toShake() {
+    setTimeout(() => this.shake = false, 500)
+    this.shake = true
   }
 }
 
