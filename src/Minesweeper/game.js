@@ -15,11 +15,6 @@ class Game {
     this.loop = this.loop.bind(this)
     this.click = this.click.bind(this)
     this.resize = this.resize.bind(this)
-    this.toShake = this.toShake.bind(this)
-
-    this.shake = false
-    this.translateX = 0
-    this.translateY = 0
 
     this.i = 0
   }
@@ -83,11 +78,6 @@ class Game {
 
     this.land.resize(this.vw, this.vh, this.offsetLeft, this.offsetTop) // width of canvas or vp?
     requestAnimationFrame(this.loop)
-  }
-
-  toShake() {
-    setTimeout(() => this.shake = false, 500)
-    this.shake = true
   }
 }
 

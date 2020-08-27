@@ -102,7 +102,7 @@
       Minesweeper
     </div>
     <div class='userName'>
-      userName
+      [userName]
     </div>
     <div class='ava'>
       {timer ? timer + 's' : ''}
@@ -129,6 +129,7 @@
   }
 
   .head {
+    color: #ccc;
     height: 24px;
     display: flex;
     flex-direction: row;

@@ -29,6 +29,7 @@ class Land {
     this.generate = this.generate.bind(this)
     this.toGameOver = this.toGameOver.bind(this)
 
+    this.bigBang = this.bigBang.bind(this)
     this.shaker = {
       translateX: 0,
       translateY: 0
@@ -175,12 +176,14 @@ class Land {
   }
 
   toGameOver () {
+    if (this.gameOver) return
     this.gameOver = true
     this.toShake()
+    this.bigBang()
   }
 
   toShake() {
-    let shake = setInterval(() => {
+    const shake = setInterval(() => {
         let translateX = Math.random() * 1.4
         let translateY = Math.random()
 
@@ -192,6 +195,32 @@ class Land {
 
     this.shaker.translateX = 0
     this.shaker.translateY = 0
+  }
+
+  bigBang() {
+    const bombs = []
+
+    this.land.forEach((line, row) => {
+      line.forEach((cell, col) => {
+        if (cell.mine) {
+          if (!cell.open) {
+            bombs.push([col, row])
+          }
+        }
+      })
+    })
+
+    const ticker = setInterval(() => {
+      if (bombs.length === 0) {
+        clearInterval(ticker)
+        return
+      }
+      let index = Math.floor(Math.random() * bombs.length) - 1
+      let bomb = bombs.splice(index, 1)[0]
+
+      this.open(bomb[0], bomb[1])
+      this.toShake()
+    }, bombs.length * 20)
   }
 }
 
